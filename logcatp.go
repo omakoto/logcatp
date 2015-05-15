@@ -70,6 +70,7 @@ func getProcessNameFromAdbRaw(pid int) string {
 
 	procname := string(cmdline)
 	procname = strings.TrimRight(procname, "\000")
+	procname = strings.Replace(procname, "\000", " ", -1)
 	return procname
 }
 
