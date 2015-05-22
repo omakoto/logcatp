@@ -17,6 +17,7 @@ import (
 )
 
 var (
+	// Patterns to extract PIDs from logs.
 	pidPatterns = []*regexp.Regexp{
 		// brief
 		regexp.MustCompile(`^[A-Z]/.+?\(\s*(\d+)`),
@@ -31,6 +32,7 @@ var (
 		regexp.MustCompile(`^\[\s*\d{2}-\d{2}\s+[\d\:\.]+\s+(\d+)`),
 	}
 
+	// Patterns to extract PIDs for process deaths logs.
 	diePatterns = []*regexp.Regexp{
 		regexp.MustCompile(`ActivityManager.*?Process .*?\(pid (\d+)\) has died`),
 		regexp.MustCompile(`ActivityManager.*?Killing (\d+)`),
@@ -40,14 +42,16 @@ var (
 	whiteSpaces = regexp.MustCompile(`\s+`)
 
 	// Flags
-	// autoflush = flag.Bool("f", false, "autoflush") // ?? Not needed?
 	width = flag.Int("w", 40, "formatting width")
-
-	// PID -> process name
-	procecces = make(map[int]string)
+	// autoflush = flag.Bool("f", false, "autoflush") // Stdout seems like always flushing
 
 	// Output line format
 	outFormat string
+
+	// Process info cache.
+	procecces = make(map[int]processInfo)
+
+	cacheExpiration = time.Minute * 10
 )
 
 const (
@@ -55,6 +59,11 @@ const (
 	MAX_PRE_INITIALIZED_RETRY             = 5
 	MAX_PRE_INITIALIZED_RETRY_INTERVAL_MS = 200
 )
+
+type processInfo struct {
+	name       string
+	expiration time.Time
+}
 
 func getProcessNameFromAdbRaw(pid int) string {
 	cmd := exec.Command("adb", "shell", fmt.Sprintf("cat /proc/%d/cmdline 2>/dev/null", pid))
@@ -78,6 +87,8 @@ func getProcessNameFromAdbRaw(pid int) string {
 func getProcessNameFromAdb(pid int) string {
 	var pname string = "(unknown)"
 
+	mlib.Debug("Getting process name for %d\n", pid)
+
 	for i := 0; i <= MAX_PRE_INITIALIZED_RETRY; i++ {
 		rawName := getProcessNameFromAdbRaw(pid)
 		if rawName == PRE_INITIALIZED {
@@ -94,12 +105,13 @@ func getProcessNameFromAdb(pid int) string {
 }
 
 func getProcessNameWithCache(pid int) string {
-	name := procecces[pid]
-	if name == "" {
-		name = getProcessNameFromAdb(pid)
-		procecces[pid] = name
+	now := time.Now()
+	pinfo, ok := procecces[pid]
+	if !ok || now.After(pinfo.expiration) {
+		name := getProcessNameFromAdb(pid)
+		procecces[pid] = processInfo{name: name, expiration: now.Add(cacheExpiration)}
 	}
-	return name
+	return pinfo.name
 }
 
 // Run for each line
