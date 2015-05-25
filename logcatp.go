@@ -3,11 +3,9 @@
 package main
 
 import (
-	_ "bufio"
 	"flag"
 	"fmt"
 	"github.com/omakoto/mlib"
-	_ "io"
 	"io/ioutil"
 	"os/exec"
 	"regexp"
