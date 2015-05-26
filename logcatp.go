@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/omakoto/mlib"
-	"io/ioutil"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -65,17 +64,10 @@ type processInfo struct {
 
 func getProcessNameFromAdbRaw(pid int) string {
 	cmd := exec.Command("adb", "shell", fmt.Sprintf("cat /proc/%d/cmdline 2>/dev/null", pid))
-	stdout, err := cmd.StdoutPipe()
+	out, err := cmd.Output()
 	mlib.Check(err)
 
-	err = cmd.Start()
-	mlib.Check(err)
-	defer cmd.Wait()
-
-	cmdline, err := ioutil.ReadAll(stdout)
-	mlib.Check(err)
-
-	procname := string(cmdline)
+	procname := string(out)
 	procname = strings.TrimRight(procname, "\000")
 	procname = strings.Replace(procname, "\000", " ", -1)
 	return procname
