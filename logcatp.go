@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/omakoto/mlib"
+	"log"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -114,7 +115,6 @@ func processLine(line string) {
 		s := re.FindStringSubmatch(line)
 		if s != nil {
 			pid, _ = strconv.Atoi(s[1])
-			// mlib.Debug("pid=%d\n", pid)
 			processName = getProcessNameWithCache(pid)
 			break
 		}
@@ -125,7 +125,7 @@ func processLine(line string) {
 		s := re.FindStringSubmatch(line)
 		if s != nil {
 			diedPid, _ := strconv.Atoi(s[1])
-			mlib.Debug("Process %d died\n", diedPid)
+			log.Printf("Process %d died\n", diedPid)
 			delete(procecces, diedPid)
 			break
 		}
@@ -135,6 +135,8 @@ func processLine(line string) {
 }
 
 func main() {
+	log.SetPrefix("logcatp: ")
+	log.SetFlags(0)
 	flag.Parse()
 
 	outFormat = fmt.Sprintf("[%%-%ds] %%s", *width)
