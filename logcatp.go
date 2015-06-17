@@ -100,7 +100,8 @@ func getProcessNameWithCache(pid int) string {
 	pinfo, ok := procecces[pid]
 	if !ok || now.After(pinfo.expiration) {
 		name := getProcessNameFromAdb(pid)
-		procecces[pid] = processInfo{name: name, expiration: now.Add(cacheExpiration)}
+		pinfo = processInfo{name: name, expiration: now.Add(cacheExpiration)}
+		procecces[pid] = pinfo
 	}
 	return pinfo.name
 }
@@ -108,7 +109,7 @@ func getProcessNameWithCache(pid int) string {
 // Run for each line
 func processLine(line string) {
 	var pid = 0
-	var processName = ""
+	var processName = "(pid not found)"
 
 	// Find the pid from the line and get the process name
 	for _, re := range pidPatterns {
