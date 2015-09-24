@@ -66,7 +66,9 @@ type processInfo struct {
 func getProcessNameFromAdbRaw(pid int) string {
 	cmd := exec.Command("adb", "shell", fmt.Sprintf("cat /proc/%d/cmdline 2>/dev/null", pid))
 	out, err := cmd.Output()
-	mlib.Check(err)
+	if err != nil {
+		return "(not found)"
+	}
 
 	procname := string(out)
 	procname = strings.TrimRight(procname, "\000")
