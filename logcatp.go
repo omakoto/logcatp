@@ -21,6 +21,8 @@ var (
 		regexp.MustCompile(`^[A-Z]/.+?\(\s*(\d+)`),
 		// process or thread
 		regexp.MustCompile(`^[A-Z]\(\s*(\d+)`),
+		// uid
+		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+\d+\s+(\d+)\s+\d+`),
 		// threadtime
 		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+(\d+)`),
 		// time
