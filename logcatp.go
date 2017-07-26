@@ -17,14 +17,14 @@ import (
 var (
 	// Patterns to extract PIDs from logs.
 	pidPatterns = []*regexp.Regexp{
+		// uid
+		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+[a-zA-Z_0-9]+\s+(\d+)\s+\d`),
+		// threadtime
+		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+(\d+)`),
 		// brief
 		regexp.MustCompile(`^[A-Z]/.+?\(\s*(\d+)`),
 		// process or thread
 		regexp.MustCompile(`^[A-Z]\(\s*(\d+)`),
-		// uid
-		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+\d+\s+(\d+)\s+\d`),
-		// threadtime
-		regexp.MustCompile(`^\d{2}-\d{2}\s+[\d\:\.]+\s+(\d+)`),
 		// time
 		regexp.MustCompile(`^\d{2}-\d{2} [\d\:\.]+ [A-Z]\/.*?\(\s*(\d+)`),
 		// regexp.MustCompile(`^.*?\(\s*(\d+)`),
