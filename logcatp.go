@@ -5,8 +5,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/omakoto/mlib"
+	"github.com/omakoto/go-common/src/common"
+	"github.com/omakoto/go-common/src/textio"
 	"log"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -82,12 +84,12 @@ func getProcessNameFromAdbRaw(pid int) string {
 func getProcessNameFromAdb(pid int) string {
 	var pname string = "(unknown)"
 
-	mlib.Debug("Getting process name for %d\n", pid)
+	common.Debugf("Getting process name for %d\n", pid)
 
 	for i := 0; i <= MAX_PRE_INITIALIZED_RETRY; i++ {
 		rawName := getProcessNameFromAdbRaw(pid)
 		if rawName == PRE_INITIALIZED {
-			mlib.Debug("%s detected\n", PRE_INITIALIZED)
+			common.Debugf("%s detected\n", PRE_INITIALIZED)
 			time.Sleep(MAX_PRE_INITIALIZED_RETRY_INTERVAL_MS * time.Millisecond)
 			continue
 		}
@@ -111,15 +113,15 @@ func getProcessNameWithCache(pid int) string {
 }
 
 // Run for each line
-func processLine(line string) {
+func processLine(line []byte) {
 	var pid = 0
 	var processName = "(pid not found)"
 
 	// Find the pid from the line and get the process name
 	for _, re := range pidPatterns {
-		s := re.FindStringSubmatch(line)
+		s := re.FindSubmatch(line)
 		if s != nil {
-			pid, _ = strconv.Atoi(s[1])
+			pid, _ = strconv.Atoi(string(s[1]))
 			processName = getProcessNameWithCache(pid)
 			break
 		}
@@ -127,9 +129,9 @@ func processLine(line string) {
 
 	// Any process died?
 	for _, re := range diePatterns {
-		s := re.FindStringSubmatch(line)
+		s := re.FindSubmatch(line)
 		if s != nil {
-			diedPid, _ := strconv.Atoi(s[1])
+			diedPid, _ := strconv.Atoi(string(s[1]))
 			log.Printf("Process %d died\n", diedPid)
 			delete(procecces, diedPid)
 			break
@@ -146,7 +148,8 @@ func main() {
 
 	outFormat = fmt.Sprintf("[%%-%ds] %%s", *width)
 
-	for line := range mlib.ReadFilesFromArgs() {
+	textio.ReadFiles(os.Args, func(line []byte, lineNo int, filename string) error {
 		processLine(line)
-	}
+		return nil
+	})
 }
