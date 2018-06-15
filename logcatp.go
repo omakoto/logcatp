@@ -148,7 +148,7 @@ func main() {
 
 	outFormat = fmt.Sprintf("[%%-%ds] %%s", *width)
 
-	textio.ReadFiles(os.Args[1:0], func(line []byte, lineNo int, filename string) error {
+	textio.ReadFiles(os.Args[1:], func(line []byte, lineNo int, filename string) error {
 		processLine(line)
 		return nil
 	})
